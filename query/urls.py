@@ -8,4 +8,6 @@ urlpatterns = [
     path('getScript/<str:script_name>/', views.getScriptByName, name='getScriptByName'),
     path('updateScript/<str:script_name>/', views.updateScript, name='updateScript'),
     path('deleteScript/<str:script_name>/', views.deleteScript, name='deleteScript'),
+    path('authorizeScript/', views.authorizeScript, name='authorizeScript'),
+    path('removeScriptPermission/', views.removeScriptPermission, name='removeScriptPermission'),
 ]

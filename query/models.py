@@ -13,14 +13,12 @@ class Script(models.Model):
 
     last_used_dtm = models.DateTimeField(auto_now=True)
 
-    public_yn = models.BooleanField(default=False)
     use_yn = models.BooleanField(default=True)
 
 
 class ScriptPermission(models.Model):
     script = models.ForeignKey(Script, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    can_run = models.BooleanField(default=True)
 
 # ScriptPermission 모델은 Script 모델과 User 모델 간의 다대다 관계를 정의합니다.
 # 이 모델은 하나의 Script 인스턴스에 대해 여러 User 인스턴스가 연결될 수 있고, 그 반대의 경우도 가능합니다.

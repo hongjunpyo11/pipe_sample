@@ -2,11 +2,12 @@
 # from django.http import JsonResponse
 # from django.views.decorators.csrf import csrf_exempt
 # from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, permission_classes
 # from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 
-from .models import Script
+from .models import Script, ScriptPermission
 from .serializers import ScriptSerializer
 
 
@@ -83,3 +84,69 @@ def deleteScript(request, script_name):
     script.save()
 
     return JsonResponse({'message': 'Script has been deleted.'})
+
+
+@api_view(['POST'])
+def authorizeScript(request):
+    try:
+        script_id = request.data.get("script_id")
+        script = Script.objects.get(id=script_id, use_yn=True)
+    except Script.DoesNotExist:
+        return JsonResponse({'message': 'Script does not exist.'}, status=404)
+
+    user_ids = request.data.get('user_ids', [])
+    print(user_ids)
+    if not isinstance(user_ids, list):
+        return JsonResponse({'message': 'user_ids must be a list.'}, status=400)
+
+    # 권한 부여 대상 사용자 리스트를 만듭니다.
+    users = []
+    for user_id in user_ids:
+        try:
+            user = User.objects.get(username=user_id) # 여기서 바꿔주면 됨
+            users.append(user)
+        except User.DoesNotExist:
+            pass
+
+    # 대상 사용자에게 권한을 부여합니다.
+    created_count = 0
+    for user in users:
+        permission, created = ScriptPermission.objects.get_or_create(script=script, user=user)
+        if created:
+            created_count += 1
+
+    return JsonResponse({'message': f'{created_count} permission(s) created.'})
+
+
+@api_view(['POST'])
+def removeScriptPermission(request):
+    try:
+        script_id = request.data.get("script_id")
+        script = Script.objects.get(id=script_id, use_yn=True)
+    except Script.DoesNotExist:
+        return JsonResponse({'message': 'Script does not exist.'}, status=404)
+
+    user_name = request.data.get('user_name', [])
+    if not isinstance(user_name, list):
+        return JsonResponse({'message': 'user_ids must be a list.'}, status=400)
+
+    # 권한 삭제 대상 사용자 리스트를 만듭니다.
+    users = []
+    for user_id in user_name:
+        try:
+            user = User.objects.get(username=user_id)
+            users.append(user)
+        except User.DoesNotExist:
+            pass
+
+    # 대상 사용자의 권한을 삭제합니다.
+    deleted_count = 0
+    for user in users:
+        try:
+            permission = ScriptPermission.objects.get(script=script, user=user)
+            permission.delete()
+            deleted_count += 1
+        except ScriptPermission.DoesNotExist:
+            pass
+
+    return JsonResponse({'message': f'{deleted_count} permission(s) deleted.'})
