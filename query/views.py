@@ -90,7 +90,7 @@ def deleteScript(request, script_name):
 def authorizeScript(request):
     try:
         script_id = request.data.get("script_id")
-        script = Script.objects.get(id=script_id, use_yn=True)
+        script = Script.objects.get(id=script_id, reg_user=request.user.username, use_yn=True)
     except Script.DoesNotExist:
         return JsonResponse({'message': 'Script does not exist.'}, status=404)
 
@@ -121,8 +121,8 @@ def authorizeScript(request):
 @api_view(['POST'])
 def removeScriptPermission(request):
     try:
-        script_id = request.data.get("script_id")
-        script = Script.objects.get(id=script_id, use_yn=True)
+        script_id = request.data.get("script_id") # user 를 받아줘야 함
+        script = Script.objects.get(id=script_id, reg_user=request.user.username, use_yn=True)
     except Script.DoesNotExist:
         return JsonResponse({'message': 'Script does not exist.'}, status=404)
 
