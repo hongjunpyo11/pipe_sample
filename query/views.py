@@ -3,12 +3,14 @@
 # from django.views.decorators.csrf import csrf_exempt
 # from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 # from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
+from rest_framework.response import Response
 
-from .models import Script, ScriptPermission
-from .serializers import ScriptSerializer
+from .models import Script, ScriptUser
+from .serializers import ScriptSerializer, ScriptUserSerializer, UserSerializer
 
 
 # @csrf_exempt
@@ -90,7 +92,7 @@ def deleteScript(request, script_name):
 def authorizeScript(request):
     try:
         script_id = request.data.get("script_id")
-        script = Script.objects.get(id=script_id, reg_user=request.user.username, use_yn=True)
+        script = Script.objects.get(id=script_id, use_yn=True)
     except Script.DoesNotExist:
         return JsonResponse({'message': 'Script does not exist.'}, status=404)
 
@@ -103,7 +105,7 @@ def authorizeScript(request):
     users = []
     for user_id in user_ids:
         try:
-            user = User.objects.get(username=user_id) # 여기서 바꿔주면 됨
+            user = User.objects.get(username=user_id)  # 여기서 바꿔주면 됨
             users.append(user)
         except User.DoesNotExist:
             pass
@@ -111,7 +113,7 @@ def authorizeScript(request):
     # 대상 사용자에게 권한을 부여합니다.
     created_count = 0
     for user in users:
-        permission, created = ScriptPermission.objects.get_or_create(script=script, user=user)
+        permission, created = ScriptUser.objects.get_or_create(script=script, user=user)
         if created:
             created_count += 1
 
@@ -121,7 +123,7 @@ def authorizeScript(request):
 @api_view(['POST'])
 def removeScriptPermission(request):
     try:
-        script_id = request.data.get("script_id") # user 를 받아줘야 함
+        script_id = request.data.get("script_id")  # user 를 받아줘야 함
         script = Script.objects.get(id=script_id, reg_user=request.user.username, use_yn=True)
     except Script.DoesNotExist:
         return JsonResponse({'message': 'Script does not exist.'}, status=404)
@@ -143,10 +145,19 @@ def removeScriptPermission(request):
     deleted_count = 0
     for user in users:
         try:
-            permission = ScriptPermission.objects.get(script=script, user=user)
+            permission = ScriptUser.objects.get(script=script, user=user)
             permission.delete()
             deleted_count += 1
-        except ScriptPermission.DoesNotExist:
+        except ScriptUser.DoesNotExist:
             pass
 
     return JsonResponse({'message': f'{deleted_count} permission(s) deleted.'})
+
+
+@api_view(['post'])
+def sharedUser(request):
+    script_id = request.data.get("script_id")
+    script = get_object_or_404(Script, id=script_id)
+    user_list = script.script_users.all()
+    serializer = UserSerializer(user_list, many=True)
+    return Response(serializer.data)

@@ -10,4 +10,5 @@ urlpatterns = [
     path('deleteScript/<str:script_name>/', views.deleteScript, name='deleteScript'),
     path('authorizeScript/', views.authorizeScript, name='authorizeScript'),
     path('removeScriptPermission/', views.removeScriptPermission, name='removeScriptPermission'),
+    path('sharedUser/', views.sharedUser, name='sharedUser'),
 ]
