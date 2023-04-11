@@ -161,3 +161,12 @@ def sharedUser(request):
     user_list = script.script_users.all()
     serializer = UserSerializer(user_list, many=True)
     return Response(serializer.data)
+
+
+@api_view(['post'])
+def sharedScripts(request):
+    user_id = request.data.get("user_id")
+    user = get_object_or_404(User, id=user_id)
+    script_list = user.shared_scripts.all()
+    serializer = ScriptSerializer(script_list, many=True)
+    return Response(serializer.data)

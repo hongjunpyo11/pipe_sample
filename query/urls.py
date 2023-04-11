@@ -11,4 +11,5 @@ urlpatterns = [
     path('authorizeScript/', views.authorizeScript, name='authorizeScript'),
     path('removeScriptPermission/', views.removeScriptPermission, name='removeScriptPermission'),
     path('sharedUser/', views.sharedUser, name='sharedUser'),
+    path('sharedScripts/', views.sharedScripts, name='sharedScripts'),
 ]
