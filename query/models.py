@@ -13,6 +13,7 @@ class Script(models.Model):
 
     last_used_dtm = models.DateTimeField(auto_now=True)
 
+    public_yn = models.BooleanField(default=True)
     use_yn = models.BooleanField(default=True)
 
     script_users = models.ManyToManyField(User, through='ScriptUser', related_name='shared_scripts')

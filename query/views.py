@@ -1,14 +1,11 @@
-# from django.shortcuts import render
-# from django.http import JsonResponse
-# from django.views.decorators.csrf import csrf_exempt
-# from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 from rest_framework.response import Response
 
+from django.db.models import Q
+from rest_framework import generics
 from .models import Script, ScriptUser
 from .serializers import ScriptSerializer, ScriptUserSerializer, UserSerializer
 
@@ -170,3 +167,15 @@ def sharedScripts(request):
     script_list = user.shared_scripts.all()
     serializer = ScriptSerializer(script_list, many=True)
     return Response(serializer.data)
+
+
+@api_view(['post'])
+def searchScript(request):
+    search_term = request.data.get('search_term')
+    if search_term:
+        queryset = Script.objects.filter(Q(script_name__icontains=search_term) | Q(query_text__icontains=search_term))
+        serializer = ScriptSerializer(queryset, many=True)
+        return Response(serializer.data)
+    else:
+        return Response({'error': 'search_term parameter is missing.'})
+    return
