@@ -174,8 +174,8 @@ def searchScript(request):
     search_term = request.data.get('search_term')
     if search_term:
         queryset = Script.objects.filter(Q(script_name__icontains=search_term) | Q(query_text__icontains=search_term))
+        queryset = queryset.filter(public_yn=True, use_yn=True)
         serializer = ScriptSerializer(queryset, many=True)
         return Response(serializer.data)
     else:
         return Response({'error': 'search_term parameter is missing.'})
-    return
